@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# Check for macOS version
+osvers=$(/usr/bin/sw_vers -productVersion | awk -F. '{print $2}')
  
 # If any previous instances of the hushlogin LaunchAgent and script exist,
 # unload the LaunchAgent and remove the LaunchAgent and script files
@@ -65,5 +68,29 @@ HUSH_LOGIN_SCRIPT
 /bin/chmod 755 "/tmp/hush_login.sh"
 /bin/chmod a+x "/tmp/hush_login.sh"
 /bin/mv "/tmp/hush_login.sh" "/Library/Scripts/hush_login.sh"
+
+# If running macOS 10.14 or later, transparency consent and control
+# may block the placing of the .hushlogin file. Instead, the .hushlogin
+# file will be written into the User Template files.
+
+if [[ ${osvers} -ge 14 ]]; then
+ for USER_TEMPLATE in "/System/Library/User Template"/*
+  do
+    /usr/bin/touch "${USER_TEMPLATE}"/.hushlogin
+  done
+
+ # If running macOS 10.14 or later, transparency consent and control
+ #  may block the placing of the .hushlogin file by the LaunchAgent. 
+ # Instead, the .hushlogin file will be written into the existing user
+ # home folders.
+
+ for USER_HOME in /Users/*
+  do
+    USER_UID=`basename "${USER_HOME}"`
+    if [ ! "${USER_UID}" = "Shared" ]; then
+       /usr/bin/touch "${USER_HOME}"/.hushlogin
+    fi
+  done
+fi
 
 exit 0
