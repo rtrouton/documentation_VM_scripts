@@ -1,6 +1,6 @@
 #!/bin/bash
 
-machine_name=computername
+machine_name=$(/usr/sbin/system_profiler SPHardwareDataType | awk '/Serial Number/ { print $4; }')
 
 # Set Mac's hostname
 
